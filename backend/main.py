@@ -17,40 +17,53 @@ app.add_middleware(
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
 
-# --- වැදගත්ම කොටස: අපි ඉස්සෙල්ලාම බලමු මොන මොඩල් ද වැඩ කරන්නේ කියලා ---
+# --- 1. DIAGNOSTIC: මොන මොඩල් ද වැඩ කරන්නේ කියලා බලමු ---
 @app.on_event("startup")
 async def check_models():
     try:
+        print("\n--- CHECKING GOOGLE MODELS ---")
         if not GEMINI_API_KEY:
-            print("❌ Error: API Key is missing!")
+            print("❌ API Key is missing!")
             return
             
-        # Google එකෙන් අහනවා "උඹ ළඟ තියෙන මොඩල් මොනවද?" කියලා
         url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
         response = requests.get(url)
         data = response.json()
         
-        print("\n--- AVAILABLE GOOGLE MODELS (CHECK THIS LIST) ---")
         if "models" in data:
             for m in data["models"]:
-                print(f"✅ Model Found: {m['name']}")
+                print(f"✅ Available: {m['name']}")
         else:
-            print(f"⚠️ Could not list models. Error: {data}")
-        print("-------------------------------------------------\n")
+            print(f"⚠️ Error listing models: {data}")
+        print("------------------------------\n")
             
     except Exception as e:
         print(f"Startup Error: {e}")
 
-# --- CHAT SETUP ---
-# අපි දැනට 'gemini-1.5-flash' පාවිච්චි කරමු. ඒක හරියන්න ඕනේ.
-# නැත්නම් අර උඩ Log එකේ එන නමක් පස්සේ දාගන්න පුළුවන්.
+# --- 2. PROJECTS DATA (මේක තමයි කලින් මිස් වුනේ!) ---
+projects = [
+    { "id": 1, "title": "SMOKIO", "desc": "Next.js & Three.js", "tech": "NEXT.JS / THREE.JS", "video": "/videos/smokio-3d-site.mp4", "link": "https://taupe-axolotl-9a3639.netlify.app/" },
+    { "id": 2, "title": "ERP SYSTEM", "desc": "Factory management system.", "tech": "LARAVEL / VUE.JS", "video": "/videos/erp.mp4", "link": "#" },
+    { "id": 3, "title": "EFRAME", "desc": "Photo framing service.", "tech": "PYTHON / REACT", "video": "/videos/eframe.mp4", "link": "https://eframe.store" }
+]
+
+@app.get("/")
+def read_root():
+    return {"message": "Ravindu's API is Online! 🚀"}
+
+@app.get("/projects")
+def get_projects():
+    return projects
+
+# --- 3. CHAT FUNCTION ---
+# අපි safe side එකට 'gemini-1.5-flash' දාමු. Log එක බැලුවම හරියටම නම වෙනස් කරගමු.
 MODEL_NAME = "gemini-1.5-flash" 
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
 
 system_instruction = """
 You are Ravindu's AI. Answer simply and shortly.
 - "Who is Arjun?": "Arjun is the Boss! Eframe Owner."
-- "Who is Nimna?": "Nimna is the Marketing Genius!"
+- "Who is Nimna?": "Nimna is the Marketing Genius! (Track Ela Kollek)."
 """
 
 class ChatRequest(BaseModel):
@@ -61,8 +74,9 @@ def chat(request: ChatRequest):
     if not GEMINI_API_KEY:
         return {"reply": "Server Error: No API Key."}
 
+    full_prompt = f"{system_instruction}\nUser: {request.message}\nAI:"
     payload = {
-        "contents": [{"parts": [{"text": f"{system_instruction}\nUser: {request.message}\nAI:"}]}]
+        "contents": [{"parts": [{"text": full_prompt}]}]
     }
 
     try:
@@ -72,9 +86,8 @@ def chat(request: ChatRequest):
         if "candidates" in data:
             return {"reply": data["candidates"][0]["content"]["parts"][0]["text"]}
         else:
-            # මෙන්න මෙතන Error එක ආවොත් අපි Log එකට දානවා
             print(f"API Request Failed: {data}")
-            return {"reply": f"Model Error: {data.get('error', {}).get('message', 'Unknown error')}"}
+            return {"reply": f"Thinking... (Error: {data.get('error', {}).get('message', 'Check Logs')})"}
             
     except Exception as e:
         return {"reply": "Connection Error."}
