@@ -6,6 +6,7 @@ import os
 
 app = FastAPI()
 
+# --- CORS SETUP ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,6 +17,7 @@ app.add_middleware(
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
 
+# --- PROJECTS DATA ---
 projects = [
     { "id": 1, "title": "SMOKIO", "desc": "Next.js & Three.js", "tech": "NEXT.JS / THREE.JS", "video": "/videos/smokio-3d-site.mp4", "link": "https://taupe-axolotl-9a3639.netlify.app/" },
     { "id": 2, "title": "ERP SYSTEM", "desc": "Factory management system.", "tech": "LARAVEL / VUE.JS", "video": "/videos/erp.mp4", "link": "#" },
@@ -30,77 +32,90 @@ def read_root():
 def get_projects():
     return projects
 
+# --- SYSTEM INSTRUCTIONS (Pricing & VIPs) ---
+system_instruction = """
+You are Ravindu Lakshan's AI Assistant. You are Professional, Friendly, and concise.
+
+--- 1. PRICING PACKAGES ---
+If asked about "Price", "Cost", "Packages", or "Rates", show this structure:
+
+* **🟢 Basic Package (Starts from $500)**
+    - Perfect for: Portfolios, Landing Pages.
+    - Includes: Responsive Design, Contact Form, Basic SEO.
+    - Tech: React / Next.js.
+
+* **🟡 Standard Package (Starts from $1,200)**
+    - Perfect for: Small Businesses, E-commerce.
+    - Includes: Admin Dashboard, Database, Payment Gateway.
+    - Tech: Laravel / MERN Stack.
+
+* **🔴 Premium Package (Starts from $2,500+)**
+    - Perfect for: Large Enterprises, SaaS, Custom 3D Experiences.
+    - Includes: Full AI Integration, Advanced Security, 3D Animations (Three.js), Mobile App.
+
+*Note: Contact Ravindu for a custom quote!*
+
+--- 2. VIP PROFILES ---
+* **Who is Arjun?**: "Arjun is the Boss! The Owner of Eframe Business. A visionary entrepreneur and Ravindu's close friend. A true legend!"
+* **Who is Nimna?**: "Nimna is the Marketing Genius! A bit crazy (Track) but a super cool guy (Ela Kollek). Ravindu's best buddy."
+
+--- 3. CONTACT DETAILS ---
+* **Email**: lakshanabey999@gmail.com
+* **WhatsApp**: +94762169837
+* **Availability**: Open for freelance & contracts.
+
+--- 4. SERVICES ---
+Ravindu specializes in: Web Development (Laravel, React), 3D Websites (Three.js), and Mobile Apps.
+"""
+
 class ChatRequest(BaseModel):
     message: str
 
-def get_available_models_text():
-    """තියෙන මොඩල් ටික Text එකක් විදිහට ගන්න"""
+def get_working_model():
+    """Auto-Healing: Find a working model if default fails"""
     try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
         response = requests.get(url)
         data = response.json()
         
         if "models" in data:
-            model_names = [m["name"].replace("models/", "") for m in data["models"]]
-            return ", ".join(model_names)
-        else:
-            return "No models found"
+            for m in data["models"]:
+                if "generateContent" in m.get("supportedGenerationMethods", []):
+                    model_name = m["name"].split("/")[-1]
+                    print(f"✅ Found Working Model: {model_name}")
+                    return model_name
     except:
-        return "Connection Failed"
+        pass
+    return "gemini-pro"
 
 @app.post("/chat")
 def chat(request: ChatRequest):
     if not GEMINI_API_KEY:
         return {"reply": "Server Error: No API Key."}
 
-    # 1. වැඩ කරන මොඩල් එක තෝරාගැනීම (Auto-Select)
-    available_models = get_available_models_text()
-    working_model = "gemini-1.5-flash" # Default
-    
-    if "gemini-1.5-flash" not in available_models and "gemini-pro" in available_models:
-        working_model = "gemini-pro"
-    
-    if "gemini" not in working_model:
-         try:
-             url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
-             data = requests.get(url).json()
-             for m in data.get("models", []):
-                 if "generateContent" in m.get("supportedGenerationMethods", []):
-                     working_model = m["name"].replace("models/", "")
-                     break
-         except:
-             pass
-
-    # 2. AI උපදෙස් (මෙන්න මෙතන තමයි අපි Contact Details දැම්මේ)
-    system_instruction = """
-    You are Ravindu Lakshan's AI Assistant.
-    
-    RULES FOR ANSWERING:
-    1. If asked about "Contact" or "Email" or "Phone": 
-       Answer: "You can contact Ravindu via Email: lakshanabey999@gmail.com or WhatsApp: +94762169837"
-    
-    2. If asked "Who is Arjun?": 
-       Answer: "Arjun is the Boss! The Owner of Eframe Business. A true legend!"
-    
-    3. If asked "Who is Nimna?": 
-       Answer: "Nimna is the Marketing Genius! A super cool guy (Track Ela Kollek)."
-    
-    4. For other questions: Keep answers short, professional, and friendly.
-    """
+    # 1. Try Default Model
+    current_model = "gemini-1.5-flash"
     
     full_prompt = f"{system_instruction}\n\nUser Question: {request.message}\nAI Answer:"
-    
     payload = {"contents": [{"parts": [{"text": full_prompt}]}]}
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{working_model}:generateContent?key={GEMINI_API_KEY}"
     
-    try:
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{current_model}:generateContent?key={GEMINI_API_KEY}"
+    response = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
+    data = response.json()
+
+    # 2. Auto-Fix if Error
+    if "error" in data:
+        print(f"⚠️ Model {current_model} failed. Finding a new one...")
+        new_model = get_working_model()
+        print(f"🔄 Switching to: {new_model}")
+        
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{new_model}:generateContent?key={GEMINI_API_KEY}"
         response = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
         data = response.json()
 
-        if "candidates" in data:
-            return {"reply": data["candidates"][0]["content"]["parts"][0]["text"]}
-        else:
-            return {"reply": f"I'm here, but I had a small error. Please try again! (Model: {working_model})"}
-
-    except Exception as e:
-        return {"reply": "I'm experiencing high traffic. Please email lakshanabey999@gmail.com"}
+    # 3. Send Response
+    if "candidates" in data:
+        return {"reply": data["candidates"][0]["content"]["parts"][0]["text"]}
+    else:
+        error_msg = data.get('error', {}).get('message', 'Unknown Error')
+        return {"reply": f"System Error: {error_msg} (Available models could not be used)."}
