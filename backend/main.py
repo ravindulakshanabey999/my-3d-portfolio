@@ -15,8 +15,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- API KEY ---
-GEMINI_API_KEY = "AIzaSyAXKXSBIbtLp4wrUWgZXCoBhmGN4Z_g2kI" 
+# --- API KEY (Render Environment Variable එක කියවන්න) ---
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
 genai.configure(api_key=GEMINI_API_KEY)
 
 # --- RAVINDU'S BRAIN (System Instructions) ---
@@ -58,7 +58,6 @@ projects = [
         "desc": "A futuristic e-commerce platform built with Next.js & Three.js",
         "tech": "NEXT.JS / THREE.JS",
         "video": "/videos/smokio-3d-site.mp4",
-        # මම මෙතන ලින්ක් එක මාරු කළා:
         "link": "https://taupe-axolotl-9a3639.netlify.app/"
     },
     {
@@ -101,4 +100,5 @@ def chat(request: ChatRequest):
         response = chat.send_message(request.message)
         return {"reply": response.text}
     except Exception as e:
+        print(f"Error: {e}")
         return {"reply": "I'm experiencing high traffic. Please email Ravindu directly at lakshanabey999@gmail.com."}
