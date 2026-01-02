@@ -48,7 +48,9 @@ Your personality: Professional, Friendly, Confident, and Concise.
 3. Always try to suggest checking out the 'Projects' section to see his capabilities.
 """
 
-model = genai.GenerativeModel('gemini-pro')
+# --- MOVED TO NEW MODEL (gemini-1.5-flash) ---
+# පරණ gemini-pro එක වෙනුවට අලුත් එක දැම්මා
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- DATA (Smokio Link Updated) ---
 projects = [
