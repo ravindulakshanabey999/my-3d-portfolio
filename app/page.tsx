@@ -170,7 +170,7 @@ export default function Home() {
   const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/projects')
+    fetch('https://ravindu-api.onrender.com/projects')
       .then((res) => res.json())
       .then((data) => setProjects(data))
       .catch((error) => console.error("Error connecting to Python Brain:", error));
@@ -183,7 +183,7 @@ export default function Home() {
     setInputMsg("");
     setIsTyping(true);
     try {
-      const res = await fetch('http://127.0.0.1:8000/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: userText }) });
+      const res = await fetch('https://ravindu-api.onrender.com/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: userText }) });
       const data = await res.json();
       setMessages(prev => [...prev, { sender: 'bot', text: data.reply }]);
     } catch (error) {
