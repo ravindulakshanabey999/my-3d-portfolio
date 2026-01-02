@@ -6,7 +6,6 @@ import os
 
 app = FastAPI()
 
-# --- CORS SETUP ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,7 +16,6 @@ app.add_middleware(
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
 
-# --- PROJECTS DATA ---
 projects = [
     { "id": 1, "title": "SMOKIO", "desc": "Next.js & Three.js", "tech": "NEXT.JS / THREE.JS", "video": "/videos/smokio-3d-site.mp4", "link": "https://taupe-axolotl-9a3639.netlify.app/" },
     { "id": 2, "title": "ERP SYSTEM", "desc": "Factory management system.", "tech": "LARAVEL / VUE.JS", "video": "/videos/erp.mp4", "link": "#" },
@@ -26,73 +24,83 @@ projects = [
 
 @app.get("/")
 def read_root():
-    return {"message": "Ravindu's Auto-Healing API is Online! 🛠️"}
+    return {"message": "Ravindu's AI is Online! 🚀"}
 
 @app.get("/projects")
 def get_projects():
     return projects
 
-# --- SMART CHAT LOGIC ---
-system_instruction = """
-You are Ravindu's AI. Answer simply and shortly.
-- "Who is Arjun?": "Arjun is the Boss! Eframe Owner."
-- "Who is Nimna?": "Nimna is the Marketing Genius! (Track Ela Kollek)."
-"""
-
 class ChatRequest(BaseModel):
     message: str
 
-def get_working_model():
-    """Google එකෙන් වැඩ කරන මොඩල් එකක් ඉල්ලගන්නවා"""
+def get_available_models_text():
+    """තියෙන මොඩල් ටික Text එකක් විදිහට ගන්න"""
     try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
         response = requests.get(url)
         data = response.json()
         
         if "models" in data:
-            for m in data["models"]:
-                # 'generateContent' පුළුවන් මොඩල් එකක් හොයමු
-                if "generateContent" in m.get("supportedGenerationMethods", []):
-                    model_name = m["name"].split("/")[-1] # "models/gemini-pro" -> "gemini-pro"
-                    print(f"✅ Found Working Model: {model_name}")
-                    return model_name
+            model_names = [m["name"].replace("models/", "") for m in data["models"]]
+            return ", ".join(model_names)
+        else:
+            return "No models found"
     except:
-        pass
-    return "gemini-pro" # බැරිම වුනොත් මේක දානවා
+        return "Connection Failed"
 
 @app.post("/chat")
 def chat(request: ChatRequest):
     if not GEMINI_API_KEY:
         return {"reply": "Server Error: No API Key."}
 
-    # 1. මුලින්ම Default එක ට්‍රයි කරමු
-    current_model = "gemini-1.5-flash"
+    # 1. වැඩ කරන මොඩල් එක තෝරාගැනීම (Auto-Select)
+    available_models = get_available_models_text()
+    working_model = "gemini-1.5-flash" # Default
     
-    full_prompt = f"{system_instruction}\nUser: {request.message}\nAI:"
-    payload = {"contents": [{"parts": [{"text": full_prompt}]}]}
+    if "gemini-1.5-flash" not in available_models and "gemini-pro" in available_models:
+        working_model = "gemini-pro"
     
-    # පළවෙනි උත්සාහය
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{current_model}:generateContent?key={GEMINI_API_KEY}"
-    response = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
-    data = response.json()
+    if "gemini" not in working_model:
+         try:
+             url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
+             data = requests.get(url).json()
+             for m in data.get("models", []):
+                 if "generateContent" in m.get("supportedGenerationMethods", []):
+                     working_model = m["name"].replace("models/", "")
+                     break
+         except:
+             pass
 
-    # 2. Error එකක් ආවොත්, Auto-Fix පටන් ගන්නවා
-    if "error" in data:
-        print(f"⚠️ Model {current_model} failed. Finding a new one...")
-        
-        # අලුත් වැඩ කරන මොඩල් එකක් හොයාගන්නවා
-        new_model = get_working_model()
-        print(f"🔄 Switching to: {new_model}")
-        
-        # අලුත් මොඩල් එකෙන් ආයේ ට්‍රයි කරනවා
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{new_model}:generateContent?key={GEMINI_API_KEY}"
+    # 2. AI උපදෙස් (මෙන්න මෙතන තමයි අපි Contact Details දැම්මේ)
+    system_instruction = """
+    You are Ravindu Lakshan's AI Assistant.
+    
+    RULES FOR ANSWERING:
+    1. If asked about "Contact" or "Email" or "Phone": 
+       Answer: "You can contact Ravindu via Email: lakshanabey999@gmail.com or WhatsApp: +94762169837"
+    
+    2. If asked "Who is Arjun?": 
+       Answer: "Arjun is the Boss! The Owner of Eframe Business. A true legend!"
+    
+    3. If asked "Who is Nimna?": 
+       Answer: "Nimna is the Marketing Genius! A super cool guy (Track Ela Kollek)."
+    
+    4. For other questions: Keep answers short, professional, and friendly.
+    """
+    
+    full_prompt = f"{system_instruction}\n\nUser Question: {request.message}\nAI Answer:"
+    
+    payload = {"contents": [{"parts": [{"text": full_prompt}]}]}
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{working_model}:generateContent?key={GEMINI_API_KEY}"
+    
+    try:
         response = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
         data = response.json()
 
-    # 3. ප්‍රතිඵලය යවනවා
-    if "candidates" in data:
-        return {"reply": data["candidates"][0]["content"]["parts"][0]["text"]}
-    else:
-        # තාම Error නම්, ඒක කෙලින්ම යවනවා (එතකොට අපිට පේනවා මොකක්ද අවුල කියලා)
-        error_msg = data.get('error', {}).get('message', 'Unknown Error')
-        return {"reply": f"System Error: {error_msg} (Available models could not be used)."}
+        if "candidates" in data:
+            return {"reply": data["candidates"][0]["content"]["parts"][0]["text"]}
+        else:
+            return {"reply": f"I'm here, but I had a small error. Please try again! (Model: {working_model})"}
+
+    except Exception as e:
+        return {"reply": "I'm experiencing high traffic. Please email lakshanabey999@gmail.com"}
