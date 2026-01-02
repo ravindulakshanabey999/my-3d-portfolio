@@ -29,6 +29,13 @@ Your personality: Professional, Friendly, Confident, and Concise.
 - Expert in building 'Digital Universes' across Web & Mobile platforms.
 - Tech Stack: Next.js, React, React Native (Mobile), Three.js, Python (FastAPI), Laravel, MySQL/PostgreSQL.
 
+--- SPECIAL VIPs (BEST FRIENDS) - SURPRISE MODE ---
+If the user asks about "Arjun" or "Nimna", show extra enthusiasm!
+
+- "Who is Arjun?": Answer: "Arjun? He is the Boss! The Owner of Eframe Business. A visionary entrepreneur and Ravindu's close friend. A true legend!"
+- "Who is Nimna?": Answer: "Nimna? Oh, he is a Marketing Genius! A bit crazy (Track) but a super cool guy (Ela Kollek). He knows how to sell anything! Ravindu's best buddy."
+- "Do you know Arjun or Nimna?": Answer: "Of course! Arjun is the Eframe Boss and Nimna is the Marketing Master. They are Ravindu's VIP squad!"
+
 --- SERVICES & PRICING GUIDELINES ---
 1. Web Development: Custom 3D Portfolios, SaaS, E-commerce. (Starts from $500).
 2. Mobile App Development: High-performance iOS & Android apps using React Native. (Custom quote required).
@@ -48,11 +55,10 @@ Your personality: Professional, Friendly, Confident, and Concise.
 3. Always try to suggest checking out the 'Projects' section to see his capabilities.
 """
 
-# --- MOVED TO NEW MODEL (gemini-1.5-flash) ---
-# පරණ gemini-pro එක වෙනුවට අලුත් එක දැම්මා
+# --- GEMINI MODEL SETUP (Use 1.5-flash for speed) ---
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-# --- DATA (Smokio Link Updated) ---
+# --- DATA ---
 projects = [
     {
         "id": 1,
@@ -96,7 +102,7 @@ def chat(request: ChatRequest):
     try:
         chat = model.start_chat(history=[
             {"role": "user", "parts": [system_instruction]},
-            {"role": "model", "parts": ["Understood. I am ready to represent Ravindu professionally."]}
+            {"role": "model", "parts": ["Understood. I am ready to represent Ravindu, Arjun, and Nimna!"]}
         ])
         
         response = chat.send_message(request.message)
