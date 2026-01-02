@@ -4,13 +4,42 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+# --- CORS ERROR FIX (මේකෙන් තමයි Vercel එකට දොර අරින්නේ) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],  # ඕනෑම තැනක ඉඳන් එන request වලට ඉඩ දෙන්න
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- DATABASE (Simple List) ---
+projects = [
+    {
+        "id": 1,
+        "title": "SMOKIO",
+        "desc": "A futuristic e-commerce platform built with Next.js & Three.js",
+        "tech": "NEXT.JS / THREE.JS",
+        "video": "/videos/smokio-3d-site.mp4",
+        "link": "https://smokio.lk"
+    },
+    {
+        "id": 2,
+        "title": "ERP SYSTEM",
+        "desc": "Advanced Enterprise Resource Planning system for large scale factories.",
+        "tech": "LARAVEL / VUE.JS",
+        "video": "/videos/erp.mp4",
+        "link": "#"
+    },
+    {
+        "id": 3,
+        "title": "EFRAME",
+        "desc": "Custom photo framing service with real-time preview.",
+        "tech": "PYTHON / REACT",
+        "video": "/videos/eframe.mp4",
+        "link": "https://eframe.store"
+    }
+]
 
 class ChatRequest(BaseModel):
     message: str
@@ -21,49 +50,19 @@ def read_root():
 
 @app.get("/projects")
 def get_projects():
-    # Dan api VIDEO path ekath methaninma yawanawa
-    return [
-        {
-            "id": 1,
-            "title": "eFrame Store",
-            "tech": "React + Three.js",
-            "desc": "Real-time 3D Product Customizer for E-Commerce. Customers can design mugs & t-shirts in 3D.",
-            "link": "https://eframe.store/",
-            "video": "/videos/eframe.mp4"
-        },
-        {
-            "id": 2,
-            "title": "Smokio 3D",
-            "tech": "WebGL + GSAP",
-            "desc": "Immersive 3D storytelling experience for Rap Artist Smokio. Features interactive scrolling and character animations.",
-            "link": "https://taupe-axolotl-9a3639.netlify.app/",
-            "video": "/videos/smokio-3d-site.mp4"
-        },
-        {
-            "id": 3,
-            "title": "ERP Suite",
-            "tech": "Laravel + Livewire",
-            "desc": "Massive Enterprise System with 26 Modules including Stock, HR, and Logistics.",
-            "link": "#",
-            "video": "/videos/erp.mp4"
-        }
-    ]
+    return projects
 
 @app.post("/chat")
-def chat_with_ai(request: ChatRequest):
+def chat(request: ChatRequest):
     user_msg = request.message.lower()
     
-    if "hello" in user_msg or "hi" in user_msg:
+    if "price" in user_msg or "cost" in user_msg:
+        return {"reply": "My rates depend on the project scope. Usually, I start from $500 for basic sites. Let's discuss!"}
+    elif "contact" in user_msg or "email" in user_msg:
+        return {"reply": "You can email me at lakshanabey999@gmail.com or WhatsApp me!"}
+    elif "skill" in user_msg or "stack" in user_msg:
+        return {"reply": "I am an expert in Next.js, React, Three.js, Python, and Laravel."}
+    elif "hello" in user_msg or "hi" in user_msg:
         return {"reply": "Hello! I am Ravindu's AI Assistant. How can I help you today?"}
-    
-    elif "who" in user_msg and "ravindu" in user_msg:
-        return {"reply": "Ravindu Lakshan is an Expert Full Stack Developer specializing in Laravel, React, and 3D Web Technologies."}
-    
-    elif "contact" in user_msg or "number" in user_msg or "whatsapp" in user_msg:
-        return {"reply": "You can reach Ravindu at 076 216 9837. Or click here to WhatsApp: https://wa.me/94762169837"}
-    
-    elif "smokio" in user_msg:
-        return {"reply": "The Smokio 3D site is a masterpiece! You can view it here: https://taupe-axolotl-9a3639.netlify.app/"}
-
     else:
-        return {"reply": "I'm focusing on Ravindu's professional work. Ask about his projects or contact details!"}
+        return {"reply": "That's interesting! Tell me more about your project idea."}
