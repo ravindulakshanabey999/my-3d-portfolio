@@ -1,5 +1,5 @@
 fastapi
 uvicorn
 pydantic
-google-generativeai>=0.7.2
 python-multipart
+google-generativeai>=0.7.2
