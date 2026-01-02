@@ -16,10 +16,11 @@ app.add_middleware(
 )
 
 # --- CONFIG ---
-# ඔයා Render එකේ දාපු API Key එක මෙතනට ගන්නවා
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
-# කෙලින්ම URL එකෙන් කතා කරමු (SDK ඕනේ නෑ)
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+
+# --- FIXED URL: Changed to 'gemini-pro' (Most stable model) ---
+# Flash මොඩල් එක අයින් කරලා, හැමෝටම වැඩ කරන Pro එක දැම්මා
+API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
 
 # --- RAVINDU'S BRAIN ---
 system_instruction = """
@@ -78,6 +79,9 @@ def chat(request: ChatRequest):
             return {"reply": reply_text}
         else:
             print(f"API Error: {data}")
+            # Error එකක් ආවොත් ලස්සනට පෙන්නනවා
+            if 'error' in data:
+                return {"reply": f"System Error: {data['error']['message']}"}
             return {"reply": "I am thinking... try asking again!"}
             
     except Exception as e:
