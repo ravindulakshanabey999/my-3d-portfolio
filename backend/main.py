@@ -17,7 +17,7 @@ app.add_middleware(
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
 
-# --- 1. DIAGNOSTIC: මොන මොඩල් ද වැඩ කරන්නේ කියලා බලමු (LOGS වල) ---
+# --- 1. DIAGNOSTIC: මොන මොඩල් ද වැඩ කරන්නේ කියලා Log එකේ බලාගන්න ---
 @app.on_event("startup")
 async def check_models():
     try:
@@ -40,7 +40,7 @@ async def check_models():
     except Exception as e:
         print(f"Startup Error: {e}")
 
-# --- 2. PROJECTS DATA (මේක තමයි කලින් මිස් වුනේ!) ---
+# --- 2. PROJECTS DATA (මේක තමයි කලින් මිස් වුනේ - දැන් හරි!) ---
 projects = [
     { "id": 1, "title": "SMOKIO", "desc": "Next.js & Three.js", "tech": "NEXT.JS / THREE.JS", "video": "/videos/smokio-3d-site.mp4", "link": "https://taupe-axolotl-9a3639.netlify.app/" },
     { "id": 2, "title": "ERP SYSTEM", "desc": "Factory management system.", "tech": "LARAVEL / VUE.JS", "video": "/videos/erp.mp4", "link": "#" },
@@ -56,7 +56,7 @@ def get_projects():
     return projects
 
 # --- 3. CHAT FUNCTION ---
-# අපි safe side එකට 'gemini-1.5-flash' දාමු. Log එක බැලුවම හරියටම නම වෙනස් කරගමු.
+# අපි 'gemini-1.5-flash' දාලා බලමු. Log එකේ වෙන නමක් තිබ්බොත් පස්සේ මාරු කරමු.
 MODEL_NAME = "gemini-1.5-flash" 
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
 
