@@ -55,8 +55,9 @@ If the user asks about "Arjun" or "Nimna", show extra enthusiasm!
 3. Always try to suggest checking out the 'Projects' section to see his capabilities.
 """
 
-# --- GEMINI MODEL SETUP (Use 1.5-flash for speed) ---
-model = genai.GenerativeModel('gemini-1.5-flash')
+# --- REVERTED TO STABLE MODEL (gemini-pro) ---
+# 1.5 flash එක Render එකේ අවුල් නිසා අපි පරණ ෂුවර් එක දැම්මා
+model = genai.GenerativeModel('gemini-pro')
 
 # --- DATA ---
 projects = [
