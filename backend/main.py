@@ -1,19 +1,57 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import google.generativeai as genai
+import os
 
 app = FastAPI()
 
-# --- CORS ERROR FIX (මේකෙන් තමයි Vercel එකට දොර අරින්නේ) ---
+# --- CORS SETUP (Vercel සම්බන්ධ කිරීම) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ඕනෑම තැනක ඉඳන් එන request වලට ඉඩ දෙන්න
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- DATABASE (Simple List) ---
+# --- API KEY SETUP ---
+# ඔයා එවපු Key එක මෙතනට දැම්මා
+GEMINI_API_KEY = "AIzaSyAXKXSBIbtLp4wrUWgZXCoBhmGN4Z_g2kI" 
+genai.configure(api_key=GEMINI_API_KEY)
+
+# --- RAVINDU'S MASTER INSTRUCTIONS (AI මොළය) ---
+system_instruction = """
+You are the advanced AI Assistant for Ravindu Lakshan's Portfolio.
+Your personality: Professional, Friendly, Confident, and Concise.
+
+--- WHO IS RAVINDU? ---
+- Full Stack Architect, AI Developer & Mobile App Engineer based in Sri Lanka.
+- Expert in building 'Digital Universes' across Web & Mobile platforms.
+- Tech Stack: Next.js, React, React Native (Mobile), Three.js, Python (FastAPI), Laravel, MySQL/PostgreSQL.
+
+--- SERVICES & PRICING GUIDELINES ---
+1. Web Development: Custom 3D Portfolios, SaaS, E-commerce. (Starts from $500).
+2. Mobile App Development: High-performance iOS & Android apps using React Native. (Custom quote required).
+3. ERP Systems: Factory management, Inventory systems for large scale operations.
+4. AI Integration: Custom Chatbots, Automation, Data Analysis.
+
+--- COMMON QUESTIONS (HOW TO ANSWER) ---
+- "Can you build mobile apps?": Answer: "Yes! Ravindu builds high-performance cross-platform mobile apps for iOS and Android using React Native."
+- "Are you available for hire?": Answer: "Yes! Ravindu is currently open for freelance projects and long-term contracts."
+- "What is your hourly rate?": Answer: "Rates depend on the project value. Please contact him directly for a quote."
+- "Where are you from?": Answer: "Ravindu is based in Sri Lanka but works with clients globally."
+- "Contact details?": Answer: "Email: lakshanabey999@gmail.com or WhatsApp: +94762169837".
+
+--- IMPORTANT RULES ---
+1. Keep answers SHORT (Maximum 2-3 sentences).
+2. If asked about unrelated topics (cooking, politics), politely decline and focus on Ravindu's work.
+3. Always try to suggest checking out the 'Projects' section to see his capabilities.
+"""
+
+model = genai.GenerativeModel('gemini-pro')
+
+# --- DATA ---
 projects = [
     {
         "id": 1,
@@ -46,7 +84,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "Ravindu's AI Brain is Active! 🧠"}
+    return {"message": "Ravindu's Advanced AI Brain is Online! 🧠"}
 
 @app.get("/projects")
 def get_projects():
@@ -54,15 +92,16 @@ def get_projects():
 
 @app.post("/chat")
 def chat(request: ChatRequest):
-    user_msg = request.message.lower()
-    
-    if "price" in user_msg or "cost" in user_msg:
-        return {"reply": "My rates depend on the project scope. Usually, I start from $500 for basic sites. Let's discuss!"}
-    elif "contact" in user_msg or "email" in user_msg:
-        return {"reply": "You can email me at lakshanabey999@gmail.com or WhatsApp me!"}
-    elif "skill" in user_msg or "stack" in user_msg:
-        return {"reply": "I am an expert in Next.js, React, Three.js, Python, and Laravel."}
-    elif "hello" in user_msg or "hi" in user_msg:
-        return {"reply": "Hello! I am Ravindu's AI Assistant. How can I help you today?"}
-    else:
-        return {"reply": "That's interesting! Tell me more about your project idea."}
+    try:
+        # Create a chat session with history + instruction
+        chat = model.start_chat(history=[
+            {"role": "user", "parts": [system_instruction]},
+            {"role": "model", "parts": ["Understood. I am ready to represent Ravindu professionally."]}
+        ])
+        
+        # Get response from AI
+        response = chat.send_message(request.message)
+        return {"reply": response.text}
+    except Exception as e:
+        # Fallback if something goes wrong
+        return {"reply": "I'm experiencing high traffic. Please email Ravindu directly at lakshanabey999@gmail.com."}
