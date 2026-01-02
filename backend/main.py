@@ -6,7 +6,7 @@ import os
 
 app = FastAPI()
 
-# --- CORS SETUP (Vercel සම්බන්ධ කිරීම) ---
+# --- CORS SETUP ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,12 +15,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- API KEY SETUP ---
-# ඔයා එවපු Key එක මෙතනට දැම්මා
+# --- API KEY ---
 GEMINI_API_KEY = "AIzaSyAXKXSBIbtLp4wrUWgZXCoBhmGN4Z_g2kI" 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# --- RAVINDU'S MASTER INSTRUCTIONS (AI මොළය) ---
+# --- RAVINDU'S BRAIN (System Instructions) ---
 system_instruction = """
 You are the advanced AI Assistant for Ravindu Lakshan's Portfolio.
 Your personality: Professional, Friendly, Confident, and Concise.
@@ -51,7 +50,7 @@ Your personality: Professional, Friendly, Confident, and Concise.
 
 model = genai.GenerativeModel('gemini-pro')
 
-# --- DATA ---
+# --- DATA (Smokio Link Updated) ---
 projects = [
     {
         "id": 1,
@@ -59,7 +58,8 @@ projects = [
         "desc": "A futuristic e-commerce platform built with Next.js & Three.js",
         "tech": "NEXT.JS / THREE.JS",
         "video": "/videos/smokio-3d-site.mp4",
-        "link": "https://smokio.lk"
+        # මම මෙතන ලින්ක් එක මාරු කළා:
+        "link": "https://taupe-axolotl-9a3639.netlify.app/"
     },
     {
         "id": 2,
@@ -93,15 +93,12 @@ def get_projects():
 @app.post("/chat")
 def chat(request: ChatRequest):
     try:
-        # Create a chat session with history + instruction
         chat = model.start_chat(history=[
             {"role": "user", "parts": [system_instruction]},
             {"role": "model", "parts": ["Understood. I am ready to represent Ravindu professionally."]}
         ])
         
-        # Get response from AI
         response = chat.send_message(request.message)
         return {"reply": response.text}
     except Exception as e:
-        # Fallback if something goes wrong
         return {"reply": "I'm experiencing high traffic. Please email Ravindu directly at lakshanabey999@gmail.com."}
