@@ -17,7 +17,7 @@ app.add_middleware(
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
 
-# --- 1. DIAGNOSTIC: මොන මොඩල් ද වැඩ කරන්නේ කියලා බලමු ---
+# --- 1. DIAGNOSTIC: මොන මොඩල් ද වැඩ කරන්නේ කියලා බලමු (LOGS වල) ---
 @app.on_event("startup")
 async def check_models():
     try:
