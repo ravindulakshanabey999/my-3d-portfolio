@@ -24,20 +24,11 @@ projects = [
 
 @app.get("/")
 def read_root():
-    return {"message": "Ravindu's API is Online! 🚀"}
+    return {"message": "Ravindu's API Online"}
 
 @app.get("/projects")
 def get_projects():
     return projects
-
-# --- SYSTEM INSTRUCTION ---
-system_instruction = """
-You are Ravindu's AI.
-Rules:
-1. Contact -> "Email: lakshanabey999@gmail.com | WhatsApp: +94762169837"
-2. Nimna -> "Marketing Genius!"
-3. Arjun -> "Eframe Boss!"
-"""
 
 class ChatRequest(BaseModel):
     message: str
@@ -45,36 +36,27 @@ class ChatRequest(BaseModel):
 @app.post("/chat")
 def chat(request: ChatRequest):
     if not GEMINI_API_KEY:
-        return {"reply": "Server Error: API Key Missing in Render Environment."}
+        return {"reply": "Server Error: API Key Missing."}
 
-    # අපි මේ ලිස්ට් එකෙන් වැඩ කරන එකක් හොයමු
-    # (gemini-1.5-flash තමයි ලාබම, gemini-pro තමයි ෂුවර්ම)
-    models = ["gemini-1.5-flash", "gemini-pro"]
+    # කෙලින්ම Google එකෙන් අහනවා "උඹ ළඟ තියෙන මොඩල් මොනවද?" කියලා
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
     
-    last_error = ""
-
-    for model in models:
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
-            payload = {
-                "contents": [{"parts": [{"text": f"{system_instruction}\nUser: {request.message}\nAI:"}]}]
-            }
+    try:
+        response = requests.get(url)
+        data = response.json()
+        
+        if "models" in data:
+            # අපිට පාවිච්චි කරන්න පුළුවන් (generateContent තියෙන) මොඩල් ටික තෝරගන්නවා
+            valid_models = []
+            for m in data["models"]:
+                if "generateContent" in m.get("supportedGenerationMethods", []):
+                    valid_models.append(m["name"])
             
-            response = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
-            data = response.json()
-
-            # හරියට උත්තරේ ආවොත් යවන්න
-            if "candidates" in data:
-                return {"reply": data["candidates"][0]["content"]["parts"][0]["text"]}
+            # ඒ ලිස්ට් එක කෙලින්ම ඔයාගේ චැට් එකට එවනවා
+            list_text = "\n".join(valid_models)
+            return {"reply": f"✅ SUCCESS! Found these models:\n\n{list_text}\n\n(Please copy and send this list to me!)"}
+        else:
+            return {"reply": f"❌ Error: Google didn't send models. Response: {data}"}
             
-            # Error එකක් ආවොත් Note කරගන්න
-            if "error" in data:
-                error_msg = data['error']['message']
-                print(f"⚠️ {model} Error: {error_msg}")
-                last_error = f"Model ({model}) Failed: {error_msg}"
-
-        except Exception as e:
-            last_error = f"Connection Error: {str(e)}"
-
-    # ඔක්කොම ෆේල් නම් ඇත්තම ලෙඩේ යවන්න (Upgrading කියන්න එපා)
-    return {"reply": f"GOOGLE ERROR: {last_error}"}
+    except Exception as e:
+        return {"reply": f"Connection Error: {str(e)}"}
