@@ -19,7 +19,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # --- PROJECTS DATA ---
 projects = [
-    { "id": 1, "title": "SMOKIO", "desc": "Next.js & Three.js", "tech": "NEXT.JS / THREE.JS", "video": "/videos/smokio-3d-site.mp4", "link": "https://taupe-axolotl-9a3639.netlify.app/" },
+    # 👇 ඔයා දැම්ම අලුත් Smokio ලින්ක් එක හරියටම තියෙනවා
+    { "id": 1, "title": "SMOKIO", "desc": "Next.js & Three.js", "tech": "NEXT.JS / THREE.JS", "video": "/videos/smokio-3d-site.mp4", "link": "https://smokio-3d-experience.netlify.app/" },
     { "id": 2, "title": "ERP SYSTEM", "desc": "Factory management system.", "tech": "LARAVEL / VUE.JS", "video": "/videos/erp.mp4", "link": "#" },
     { "id": 3, "title": "EFRAME", "desc": "Photo framing service.", "tech": "PYTHON / REACT", "video": "/videos/eframe.mp4", "link": "https://eframe.store" }
 ]
@@ -39,6 +40,7 @@ You are Ravindu Lakshan's AI Assistant. You are Professional, Friendly, and Conc
 --- 1. CONTACT & AVAILABILITY ---
 * **Email**: lakshanabey999@gmail.com
 * **WhatsApp**: +94762169837
+* **Upwork**: https://www.upwork.com/freelancers/your-profile-link-here  <-- ⚠️ (මෙතන ඔයාගේ ඇත්ත Link එක දාන්න)
 * **Status**: Open for freelance projects and long-term contracts.
 
 --- 2. VIP PROFILES (BEST FRIENDS) ---
@@ -72,7 +74,6 @@ def chat(request: ChatRequest):
         return {"reply": "Server Error: No API Key."}
 
     # අපි හොයාගත්ත වැඩ කරන මොඩල් ලිස්ට් එක (Priority Order)
-    # 1. Lite (වේගවත්/ලාබයි) -> 2. Latest (Stable) -> 3. Flash (Powerful)
     models_to_try = [
         "models/gemini-2.0-flash-lite", 
         "models/gemini-flash-latest", 
@@ -84,17 +85,14 @@ def chat(request: ChatRequest):
     
     for model in models_to_try:
         try:
-            # URL එක හදන විදිහ (Note: ලිස්ට් එකේ models/ කියන කෑල්ල තියෙන නිසා අපි URL එකේ ඒක ආයේ ගහන්නේ නෑ)
             url = f"https://generativelanguage.googleapis.com/v1beta/{model}:generateContent?key={GEMINI_API_KEY}"
             
             response = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
             data = response.json()
 
-            # හරියට උත්තරේ ආවොත් කෙලින්ම යවනවා (වැඩේ ඉවරයි)
             if "candidates" in data:
                 return {"reply": data["candidates"][0]["content"]["parts"][0]["text"]}
             
-            # Error එකක් ආවොත් (Quota Limit වගේ), අපි Log එකට දාලා ඊළඟ මොඩල් එකට යමු
             if "error" in data:
                 print(f"⚠️ {model} Failed: {data['error']['message']}. Switching to next...")
                 continue 
@@ -103,5 +101,4 @@ def chat(request: ChatRequest):
             print(f"Connection Error on {model}: {e}")
             continue
 
-    # ඔක්කොම ෆේල් වුනොත් (මේක වෙන්න බෑ දැන්)
     return {"reply": "I am overloaded right now. Please email lakshanabey999@gmail.com directly!"}

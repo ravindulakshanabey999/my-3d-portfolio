@@ -143,7 +143,7 @@ function CameraRig({ startJourney, hasArrived, onArrival, setScrollProgress }: {
 
 // --- LINKS ---
 const socialLinks = [
-    { name: "Upwork", icon: Briefcase, color: "text-green-400", hover: "hover:border-green-500", link: "https://www.upwork.com/freelancers/~01b585e873dfa92fbe?mp_source=share" },
+    { name: "Upwork", icon: Briefcase, color: "text-green-400", hover: "hover:border-green-500", link: "https://www.upwork.com/freelancers/~01031ae12d25d4eae5?mp_source=share" },
     { name: "Fiverr", icon: Briefcase, color: "text-green-500", hover: "hover:border-green-600", link: "https://www.fiverr.com/s/ak2Rakp" },
     { name: "LinkedIn", icon: Linkedin, color: "text-blue-400", hover: "hover:border-blue-500", link: "https://www.linkedin.com/in/rav-lakshan-050a64397" },
     { name: "WhatsApp", icon: MessageSquare, color: "text-green-400", hover: "hover:border-green-400", link: "https://wa.me/94762169837" }
