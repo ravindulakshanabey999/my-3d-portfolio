@@ -6,7 +6,8 @@ import { Points, PointMaterial, Float, Stars, Sphere, MeshDistortMaterial, Spark
 import { motion, AnimatePresence } from 'framer-motion';
 import Tilt from 'react-parallax-tilt';
 import { MessageSquare, X, Send, ExternalLink, Code2, Database, Layers, Play, Linkedin, Briefcase, ChevronRight } from 'lucide-react';
-import * as random from 'maath/random/dist/maath-random.cjs';
+// @ts-ignore
+import * as random from 'maath/random';
 import * as THREE from 'three';
 
 // --- 1. BLACK HOLE PARTICLES ---
