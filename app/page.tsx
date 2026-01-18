@@ -9,33 +9,26 @@ import { MessageSquare, X, Send, ExternalLink, Code2, Database, Layers, Play, Li
 import * as random from 'maath/random/dist/maath-random.cjs';
 import * as THREE from 'three';
 
-// --- 1. BLACK HOLE PARTICLES (Updated Logic) ---
+// --- 1. BLACK HOLE PARTICLES ---
 function GalaxyParticles({ scrollProgress, hasStarted, hasArrived }: { scrollProgress: number, hasStarted: boolean, hasArrived: boolean }) {
   const ref = useRef<any>(null);
-  // FIX: NaN error fixed with 'as any' and correct size
   const [sphere] = useState(() => random.inSphere(new Float32Array(21000), { radius: 4 }) as any);
 
   useFrame((state, delta) => {
     if (ref.current) {
-      // Auto Warp Speed (Intro) OR Scroll Warp (Black Hole)
       const isIntroWarping = hasStarted && !hasArrived;
       const isBlackHoleWarping = scrollProgress > 0.8;
 
-      // Rotation
       ref.current.rotation.y += delta * 0.1 + (scrollProgress * 0.5);
       
-      // Warp Effect
       if (isIntroWarping) {
-           // Intro Zoom Effect
            ref.current.rotation.x += delta * 2;
            ref.current.scale.z = THREE.MathUtils.lerp(ref.current.scale.z, 15, 0.05);
       } else if (isBlackHoleWarping) {
-           // Black Hole Suction
            ref.current.scale.z = THREE.MathUtils.lerp(ref.current.scale.z, 20, 0.1); 
            ref.current.scale.x = THREE.MathUtils.lerp(ref.current.scale.x, 0.5, 0.1);
            ref.current.scale.y = THREE.MathUtils.lerp(ref.current.scale.y, 0.5, 0.1);
       } else {
-           // Normal State
            ref.current.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
       }
     }
@@ -96,50 +89,137 @@ function BlackHoleCore({ scrollProgress }: { scrollProgress: number }) {
   );
 }
 
-// --- 3. CAMERA RIG (FIXED AUTO PILOT) ✈️ ---
+// --- 3. CAMERA RIG ---
 function CameraRig({ startJourney, hasArrived, onArrival, setScrollProgress }: { startJourney: boolean, hasArrived: boolean, onArrival: () => void, setScrollProgress: (v: number) => void }) {
     const { camera } = useThree();
     const vec = new THREE.Vector3();
 
     useFrame((state) => {
-        // Scroll calculation
         const scrollY = window.scrollY;
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
         const progress = Math.min(scrollY / (maxScroll || 1), 1);
         setScrollProgress(progress);
 
         if (!startJourney) {
-            // 1. Idle State (Waiting)
             camera.position.lerp(vec.set(state.pointer.x, state.pointer.y, 40), 0.05);
             camera.lookAt(0, 0, 0);
         } else if (!hasArrived) {
-            // 2. AUTO PILOT ZOOM (The fix!)
-            // Scroll karanne nathuwama camera eka z=5 ta geniyanawa
             camera.position.z = THREE.MathUtils.lerp(camera.position.z, 5, 0.04);
             camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.04);
             camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0, 0.04);
 
-            // Z < 6 unama Arrival complete kiyala kiyanawa
             if (camera.position.z < 6) {
                 onArrival();
             }
         } else {
-            // 3. SCROLL CONTROL (Black Hole Dive)
-            // Dan scroll eken control wenawa (From 5 to -10)
             let targetZ = 5; 
             if (progress < 0.8) {
-                 // Normal Scroll
                  targetZ = 5; 
             } else {
-                // Black Hole Dive
                 targetZ = 5 - ((progress - 0.8) * 100); 
             }
-
             camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.1);
         }
     });
     return null;
 }
+
+// --- 4. AI ROBOT AVATAR (NEW! 🔥) ---
+function AIAvatar({ isSpeaking }: { isSpeaking: boolean }) {
+  const group = useRef<any>(null);
+  const ringRef = useRef<any>(null);
+  const eyesRef = useRef<any>(null);
+
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime();
+    
+    // 1. Floating Animation (මුළු රොබෝම උඩ පහල යනවා)
+    if (group.current) {
+      group.current.position.y = Math.sin(t * 1.5) * 0.15; // Smooth Floating
+      group.current.rotation.y = Math.sin(t * 0.5) * 0.1;  // පොඩ්ඩක් වමට දකුණට බලනවා
+    }
+
+    // 2. Ring Rotation (ඔළුව වටේ රින්ග් එක කැරකෙනවා)
+    if (ringRef.current) {
+      ringRef.current.rotation.x = t * 0.5;
+      ringRef.current.rotation.y = t * 0.3;
+    }
+
+    // 3. Speaking Animation (කතා කරනකොට ඇස් ලොකු වෙනවා & ගැස්සෙනවා)
+    if (eyesRef.current) {
+      if (isSpeaking) {
+        // කතා කරනකොට ඇස් වල එළිය (Scale) අඩු වැඩි වෙනවා
+        const scale = 1 + Math.sin(t * 20) * 0.2;
+        eyesRef.current.scale.set(scale, scale, scale);
+        eyesRef.current.position.z = 0.35 + Math.sin(t * 20) * 0.02;
+      } else {
+        // කතා නොකරනකොට නෝමල් ඉන්නවා
+        eyesRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+        eyesRef.current.position.z = 0.35;
+      }
+    }
+  });
+
+return (
+    // කැමරා එකට ගොඩක් ලඟින් (z=3) පෙන්නනවා
+    <group ref={group} position={[0, -0.2, 3]} rotation={[0, 0, 0]}> 
+      
+      {/* --- HEAD (Sleek Sphere) --- */}
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[0.6, 64, 64]} /> {/* Smooth Sphere */}
+        <meshPhysicalMaterial 
+            color="#111" 
+            metalness={0.9} 
+            roughness={0.1} 
+            clearcoat={1} 
+            clearcoatRoughness={0.1}
+        />
+      </mesh>
+
+      {/* --- GLOWING EYES (Group) --- */}
+      <group ref={eyesRef} position={[0, 0.1, 0.35]}>
+          {/* Left Eye */}
+          <mesh position={[-0.15, 0, 0.15]} rotation={[0, -0.2, 0]}>
+            <capsuleGeometry args={[0.08, 0.2, 4, 8]} /> {/* Oval Shape Eyes */}
+            <meshBasicMaterial color={isSpeaking ? "#00ff00" : "#00f0ff"} /> {/* කතා කරනකොට කොළ, නැත්තම් නිල් */}
+          </mesh>
+          {/* Right Eye */}
+          <mesh position={[0.15, 0, 0.15]} rotation={[0, 0.2, 0]}>
+            <capsuleGeometry args={[0.08, 0.2, 4, 8]} />
+            <meshBasicMaterial color={isSpeaking ? "#00ff00" : "#00f0ff"} />
+          </mesh>
+      </group>
+
+      {/* --- HALO RINGS (Sci-Fi Look) --- */}
+      <group ref={ringRef}>
+          {/* Outer Ring */}
+          <mesh rotation={[1.5, 0, 0]}>
+            <torusGeometry args={[0.9, 0.02, 16, 100]} />
+            <meshBasicMaterial color="cyan" transparent opacity={0.3} />
+          </mesh>
+          {/* Inner Ring */}
+          <mesh rotation={[0, 0, 1]}>
+            <torusGeometry args={[0.75, 0.01, 16, 100]} />
+            <meshBasicMaterial color="purple" transparent opacity={0.5} />
+          </mesh>
+      </group>
+
+      {/* --- ANTENNA (Optional) --- */}
+      <mesh position={[0, 0.6, 0]}>
+        <cylinderGeometry args={[0.01, 0.01, 0.4]} />
+        <meshStandardMaterial color="gray" />
+      </mesh>
+      <PointMaterial color="red" size={0.15} position={[0, 0.8, 0]} />
+
+    </group>
+  );
+}
+
+
+
+
+
+  
 
 // --- LINKS ---
 const socialLinks = [
@@ -169,6 +249,9 @@ export default function Home() {
   const [inputMsg, setInputMsg] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
+  // NEW: State to check if AI is speaking
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
   useEffect(() => {
     fetch('https://ravindu-api.onrender.com/projects')
       .then((res) => res.json())
@@ -176,16 +259,46 @@ export default function Home() {
       .catch((error) => console.error("Error connecting to Python Brain:", error));
   }, []);
 
+  // UPDATED SEND MESSAGE FUNCTION (WITH VOICE) 🎙️
   const sendMessage = async () => {
     if(!inputMsg.trim()) return;
     const userText = inputMsg;
     setMessages(prev => [...prev, { sender: 'user', text: userText }]);
     setInputMsg("");
     setIsTyping(true);
+
     try {
-      const res = await fetch('https://ravindu-api.onrender.com/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: userText }) });
+      const res = await fetch('https://ravindu-api.onrender.com/chat', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ message: userText }) 
+      });
       const data = await res.json();
-      setMessages(prev => [...prev, { sender: 'bot', text: data.reply }]);
+      const botReply = data.reply;
+      
+      setMessages(prev => [...prev, { sender: 'bot', text: botReply }]);
+
+      // --- VOICE LOGIC START ---
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Stop previous speech
+        const utterance = new SpeechSynthesisUtterance(botReply);
+        
+        // Voice Customization
+        utterance.pitch = 0.8; // Deep Robot Voice
+        utterance.rate = 1.1;  // Fast Speed
+        
+        // Find a cool English voice if available (Optional)
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v => v.lang.includes('en') && v.name.includes('Google')) || voices[0];
+        if(preferredVoice) utterance.voice = preferredVoice;
+
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        
+        window.speechSynthesis.speak(utterance);
+      }
+      // --- VOICE LOGIC END ---
+
     } catch (error) {
       setMessages(prev => [...prev, { sender: 'bot', text: "Sorry, my brain is offline right now." }]);
     }
@@ -201,7 +314,6 @@ export default function Home() {
       <div className="fixed inset-0 z-0">
         <Canvas camera={{ position: [0, 0, 40], fov: 60 }}>
           <Suspense fallback={null}>
-            {/* Pass state to CameraRig so it knows when to Auto-Fly vs Scroll */}
             <CameraRig startJourney={hasStarted} hasArrived={hasArrived} onArrival={() => setHasArrived(true)} setScrollProgress={setScrollProgress} />
             
             <Stars radius={50} count={6000} factor={4} fade speed={1 + scrollProgress * 10} />
@@ -209,6 +321,9 @@ export default function Home() {
             
             <GalaxyParticles scrollProgress={scrollProgress} hasStarted={hasStarted} hasArrived={hasArrived} />
             <BlackHoleCore scrollProgress={scrollProgress} />
+            
+            {/* NEW: ROBOT AVATAR (Only visible when chat is open) */}
+            {isChatOpen && <AIAvatar isSpeaking={isSpeaking} />}
             
             <ambientLight intensity={0.5} />
             <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} color="#00f0ff" />
@@ -342,7 +457,7 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* --- CONNECT (INSIDE THE BLACK HOLE) --- */}
+                {/* --- CONNECT --- */}
                 <section className="min-h-screen py-32 px-8 md:px-24 flex flex-col justify-center items-center relative z-20">
                     <motion.div style={{ opacity: scrollProgress > 0.9 ? 1 : 0 }} className="absolute inset-0 bg-black/80 pointer-events-none transition-opacity duration-1000"></motion.div>
                     <h2 className="text-6xl md:text-8xl font-black mb-16 text-center tracking-wider uppercase text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.8)] relative z-30">Lets Talk</h2>
