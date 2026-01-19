@@ -254,11 +254,12 @@ export default function Home() {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
-    fetch('https://ravindu-api.onrender.com/projects')
-      .then((res) => res.json())
-      .then((data) => setProjects(data))
-      .catch((error) => console.error("Error connecting to Python Brain:", error));
-  }, []);
+  // 👇 අනිවාර්යයෙන්ම මේ Online Link එක තියෙන්න ඕන Live යන්න!
+  fetch('https://ravindu-api.onrender.com/projects') 
+    .then((res) => res.json())
+    .then((data) => setProjects(data))
+    .catch((error) => console.error("Error connecting to Python Brain:", error));
+}, []);
 
   // UPDATED SEND MESSAGE FUNCTION (WITH VOICE) 🎙️
   const sendMessage = async () => {

@@ -15,14 +15,42 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # --- PROJECTS DATA ---
 projects = [
-    # 👇 ඔයා දැම්ම අලුත් Smokio ලින්ක් එක හරියටම තියෙනවා
-    { "id": 1, "title": "SMOKIO", "desc": "Next.js & Three.js", "tech": "NEXT.JS / THREE.JS", "video": "/videos/smokio-3d-site.mp4", "link": "https://smokio-3d-experience.netlify.app/" },
-    { "id": 2, "title": "ERP SYSTEM", "desc": "Factory management system.", "tech": "LARAVEL / VUE.JS", "video": "/videos/erp.mp4", "link": "#" },
-    { "id": 3, "title": "EFRAME", "desc": "Photo framing service.", "tech": "PYTHON / REACT", "video": "/videos/eframe.mp4", "link": "https://eframe.store" }
+    { 
+        "id": 1, 
+        "title": "SMOKIO", 
+        "desc": "Next.js & Three.js", 
+        "tech": "NEXT.JS / THREE.JS", 
+        "video": "/videos/smokio-3d-site.mp4", 
+        "link": "https://smokio-3d-experience.netlify.app/" 
+    },
+    { 
+        "id": 2, 
+        "title": "ERP SYSTEM", 
+        "desc": "Factory management system.", 
+        "tech": "LARAVEL / VUE.JS", 
+        "video": "/videos/erp.mp4", 
+        "link": "#" 
+    },
+    { 
+        "id": 3, 
+        "title": "EFRAME", 
+        "desc": "Photo framing service.", 
+        "tech": "PYTHON / REACT", 
+        "video": "/videos/eframe.mp4", 
+        "link": "https://eframe.store" 
+    },
+    { 
+        "id": 4, 
+        "title": "LIQUID CHROME", 
+        "desc": "Interactive 3D Liquid Metal Shader.", 
+        "tech": "R3F / WEBGL", 
+        "video": "/videos/blob.mp4", 
+        "link": "https://liquid-chrome-shader.netlify.app/" 
+    }
 ]
 
 @app.get("/")
@@ -33,14 +61,14 @@ def read_root():
 def get_projects():
     return projects
 
-# --- SYSTEM INSTRUCTIONS (FULL DETAILS) ---
+# --- SYSTEM INSTRUCTIONS ---
 system_instruction = """
 You are Ravindu Lakshan's AI Assistant. You are Professional, Friendly, and Concise.
 
 --- 1. CONTACT & AVAILABILITY ---
 * **Email**: lakshanabey999@gmail.com
 * **WhatsApp**: +94762169837
-* **Upwork**: https://www.upwork.com/freelancers/your-profile-link-here  <-- ⚠️ (මෙතන ඔයාගේ ඇත්ත Link එක දාන්න)
+* **Upwork**: https://www.upwork.com/freelancers/your-profile-link-here
 * **Status**: Open for freelance projects and long-term contracts.
 
 --- 2. VIP PROFILES (BEST FRIENDS) ---
@@ -49,18 +77,9 @@ You are Ravindu Lakshan's AI Assistant. You are Professional, Friendly, and Conc
 
 --- 3. PRICING PACKAGES ---
 If asked about "Price", "Cost", "Packages", show this:
-
-* **🟢 Basic Package (Starts from $500)**
-    - For: Portfolios, Landing Pages.
-    - Tech: React / Next.js.
-
-* **🟡 Standard Package (Starts from $1,200)**
-    - For: Small Businesses, E-commerce.
-    - Tech: Laravel / MERN Stack + Admin Panel.
-
-* **🔴 Premium Package (Starts from $2,500+)**
-    - For: Large Enterprises, SaaS, Custom 3D Experiences.
-    - Tech: Full AI Integration, Advanced Security, Mobile App.
+* **🟢 Basic Package (Starts from $500)**: Portfolios, Landing Pages (React/Next.js).
+* **🟡 Standard Package (Starts from $1,200)**: Small Businesses, E-commerce (Laravel/MERN).
+* **🔴 Premium Package (Starts from $2,500+)**: Large Enterprises, SaaS, Custom 3D Experiences (AI Integration, Mobile App).
 
 *Note: Contact Ravindu for a custom quote!*
 """
@@ -73,7 +92,6 @@ def chat(request: ChatRequest):
     if not GEMINI_API_KEY:
         return {"reply": "Server Error: No API Key."}
 
-    # අපි හොයාගත්ත වැඩ කරන මොඩල් ලිස්ට් එක (Priority Order)
     models_to_try = [
         "models/gemini-2.0-flash-lite", 
         "models/gemini-flash-latest", 
@@ -86,7 +104,6 @@ def chat(request: ChatRequest):
     for model in models_to_try:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/{model}:generateContent?key={GEMINI_API_KEY}"
-            
             response = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
             data = response.json()
 
