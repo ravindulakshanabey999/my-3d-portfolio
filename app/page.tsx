@@ -10,6 +10,42 @@ import { MessageSquare, X, Send, ExternalLink, Code2, Database, Layers, Play, Li
 import * as random from 'maath/random';
 import * as THREE from 'three';
 
+// --- PROJECTS DATA (HARDCODED FOR INSTANT LOADING ⚡) ---
+const MY_PROJECTS = [
+    { 
+        id: 1, 
+        title: "SMOKIO", 
+        desc: "Next.js & Three.js", 
+        tech: "NEXT.JS / THREE.JS", 
+        video: "/videos/smokio-3d-site.mp4", 
+        link: "https://smokio-3d-experience.netlify.app/" 
+    },
+    { 
+        id: 2, 
+        title: "ERP SYSTEM", 
+        desc: "Factory management system.", 
+        tech: "LARAVEL / VUE.JS", 
+        video: "/videos/erp.mp4", 
+        link: "#" 
+    },
+    { 
+        id: 3, 
+        title: "EFRAME", 
+        desc: "Photo framing service.", 
+        tech: "PYTHON / REACT", 
+        video: "/videos/eframe.mp4", 
+        link: "https://eframe.store" 
+    },
+    { 
+        id: 4, 
+        title: "LIQUID CHROME", 
+        desc: "Interactive 3D Liquid Metal Shader.", 
+        tech: "R3F / WEBGL", 
+        video: "/videos/blob.mp4", 
+        link: "https://liquid-chrome-shader.netlify.app/" 
+    }
+];
+
 // --- 1. BLACK HOLE PARTICLES ---
 function GalaxyParticles({ scrollProgress, hasStarted, hasArrived }: { scrollProgress: number, hasStarted: boolean, hasArrived: boolean }) {
   const ref = useRef<any>(null);
@@ -125,7 +161,7 @@ function CameraRig({ startJourney, hasArrived, onArrival, setScrollProgress }: {
     return null;
 }
 
-// --- 4. AI ROBOT AVATAR (NEW! 🔥) ---
+// --- 4. AI ROBOT AVATAR ---
 function AIAvatar({ isSpeaking }: { isSpeaking: boolean }) {
   const group = useRef<any>(null);
   const ringRef = useRef<any>(null);
@@ -134,27 +170,25 @@ function AIAvatar({ isSpeaking }: { isSpeaking: boolean }) {
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
     
-    // 1. Floating Animation (මුළු රොබෝම උඩ පහල යනවා)
+    // 1. Floating Animation
     if (group.current) {
-      group.current.position.y = Math.sin(t * 1.5) * 0.15; // Smooth Floating
-      group.current.rotation.y = Math.sin(t * 0.5) * 0.1;  // පොඩ්ඩක් වමට දකුණට බලනවා
+      group.current.position.y = Math.sin(t * 1.5) * 0.15; 
+      group.current.rotation.y = Math.sin(t * 0.5) * 0.1;
     }
 
-    // 2. Ring Rotation (ඔළුව වටේ රින්ග් එක කැරකෙනවා)
+    // 2. Ring Rotation
     if (ringRef.current) {
       ringRef.current.rotation.x = t * 0.5;
       ringRef.current.rotation.y = t * 0.3;
     }
 
-    // 3. Speaking Animation (කතා කරනකොට ඇස් ලොකු වෙනවා & ගැස්සෙනවා)
+    // 3. Speaking Animation
     if (eyesRef.current) {
       if (isSpeaking) {
-        // කතා කරනකොට ඇස් වල එළිය (Scale) අඩු වැඩි වෙනවා
         const scale = 1 + Math.sin(t * 20) * 0.2;
         eyesRef.current.scale.set(scale, scale, scale);
         eyesRef.current.position.z = 0.35 + Math.sin(t * 20) * 0.02;
       } else {
-        // කතා නොකරනකොට නෝමල් ඉන්නවා
         eyesRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
         eyesRef.current.position.z = 0.35;
       }
@@ -162,12 +196,11 @@ function AIAvatar({ isSpeaking }: { isSpeaking: boolean }) {
   });
 
 return (
-    // කැමරා එකට ගොඩක් ලඟින් (z=3) පෙන්නනවා
     <group ref={group} position={[0, -0.2, 3]} rotation={[0, 0, 0]}> 
       
-      {/* --- HEAD (Sleek Sphere) --- */}
+      {/* --- HEAD --- */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.6, 64, 64]} /> {/* Smooth Sphere */}
+        <sphereGeometry args={[0.6, 64, 64]} /> 
         <meshPhysicalMaterial 
             color="#111" 
             metalness={0.9} 
@@ -177,35 +210,31 @@ return (
         />
       </mesh>
 
-      {/* --- GLOWING EYES (Group) --- */}
+      {/* --- GLOWING EYES --- */}
       <group ref={eyesRef} position={[0, 0.1, 0.35]}>
-          {/* Left Eye */}
           <mesh position={[-0.15, 0, 0.15]} rotation={[0, -0.2, 0]}>
-            <capsuleGeometry args={[0.08, 0.2, 4, 8]} /> {/* Oval Shape Eyes */}
-            <meshBasicMaterial color={isSpeaking ? "#00ff00" : "#00f0ff"} /> {/* කතා කරනකොට කොළ, නැත්තම් නිල් */}
+            <capsuleGeometry args={[0.08, 0.2, 4, 8]} /> 
+            <meshBasicMaterial color={isSpeaking ? "#00ff00" : "#00f0ff"} /> 
           </mesh>
-          {/* Right Eye */}
           <mesh position={[0.15, 0, 0.15]} rotation={[0, 0.2, 0]}>
             <capsuleGeometry args={[0.08, 0.2, 4, 8]} />
             <meshBasicMaterial color={isSpeaking ? "#00ff00" : "#00f0ff"} />
           </mesh>
       </group>
 
-      {/* --- HALO RINGS (Sci-Fi Look) --- */}
+      {/* --- HALO RINGS --- */}
       <group ref={ringRef}>
-          {/* Outer Ring */}
           <mesh rotation={[1.5, 0, 0]}>
             <torusGeometry args={[0.9, 0.02, 16, 100]} />
             <meshBasicMaterial color="cyan" transparent opacity={0.3} />
           </mesh>
-          {/* Inner Ring */}
           <mesh rotation={[0, 0, 1]}>
             <torusGeometry args={[0.75, 0.01, 16, 100]} />
             <meshBasicMaterial color="purple" transparent opacity={0.5} />
           </mesh>
       </group>
 
-      {/* --- ANTENNA (Optional) --- */}
+      {/* --- ANTENNA --- */}
       <mesh position={[0, 0.6, 0]}>
         <cylinderGeometry args={[0.01, 0.01, 0.4]} />
         <meshStandardMaterial color="gray" />
@@ -215,12 +244,6 @@ return (
     </group>
   );
 }
-
-
-
-
-
-  
 
 // --- LINKS ---
 const socialLinks = [
@@ -243,25 +266,22 @@ export default function Home() {
   const [hasArrived, setHasArrived] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   
-  const [projects, setProjects] = useState<any[]>([]);
+  // 👇 Projects දැන් එන්නේ කෙලින්ම file එකෙන්. Load වෙන්න වෙලා යන්නේ නෑ!
+  const [projects, setProjects] = useState<any[]>(MY_PROJECTS);
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [messages, setMessages] = useState<{sender: 'user' | 'bot', text: string}[]>([{ sender: 'bot', text: 'Hi! I am Ravindu\'s AI Assistant.' }]);
   const [inputMsg, setInputMsg] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  // NEW: State to check if AI is speaking
+  // AI Speaking State
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  useEffect(() => {
-  // 👇 අනිවාර්යයෙන්ම මේ Online Link එක තියෙන්න ඕන Live යන්න!
-  fetch('https://ravindu-api.onrender.com/projects') 
-    .then((res) => res.json())
-    .then((data) => setProjects(data))
-    .catch((error) => console.error("Error connecting to Python Brain:", error));
-}, []);
+  // NOTE: Server fetch එක අයින් කළා Projects වලට.
+  // Chat එකට විතරක් backend එක පාවිච්චි වෙනවා.
 
-  // UPDATED SEND MESSAGE FUNCTION (WITH VOICE) 🎙️
+  // --- CHAT MESSAGE FUNCTION (WITH VOICE) ---
   const sendMessage = async () => {
     if(!inputMsg.trim()) return;
     const userText = inputMsg;
@@ -289,7 +309,7 @@ export default function Home() {
         utterance.pitch = 0.8; // Deep Robot Voice
         utterance.rate = 1.1;  // Fast Speed
         
-        // Find a cool English voice if available (Optional)
+        // Find a cool English voice if available
         const voices = window.speechSynthesis.getVoices();
         const preferredVoice = voices.find(v => v.lang.includes('en') && v.name.includes('Google')) || voices[0];
         if(preferredVoice) utterance.voice = preferredVoice;
@@ -324,7 +344,7 @@ export default function Home() {
             <GalaxyParticles scrollProgress={scrollProgress} hasStarted={hasStarted} hasArrived={hasArrived} />
             <BlackHoleCore scrollProgress={scrollProgress} />
             
-            {/* NEW: ROBOT AVATAR (Only visible when chat is open) */}
+            {/* ROBOT AVATAR (Visible only when chat is open) */}
             {isChatOpen && <AIAvatar isSpeaking={isSpeaking} />}
             
             <ambientLight intensity={0.5} />
@@ -435,7 +455,7 @@ export default function Home() {
                                     <h3 className="text-5xl font-black text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-purple-500 transition-all duration-500">{project.title}</h3>
                                     <p className="text-gray-400 text-lg leading-relaxed font-light">{project.desc}</p>
                                     <div className="flex items-center gap-2 text-cyan-400 font-bold tracking-widest uppercase text-sm group/link">
-                                        <Play size={16} className="group-hover/link:translate-x-1 transition" /> Watch Demo
+                                            <Play size={16} className="group-hover/link:translate-x-1 transition" /> Watch Demo
                                     </div>
                                     </div>
                                     <div className="w-full md:w-2/5 aspect-video rounded-2xl bg-white/5 border border-white/10 overflow-hidden relative group-hover:border-cyan-500/50 transition duration-500 shadow-2xl">
